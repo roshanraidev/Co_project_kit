@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kitchen Temperature Log</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+      background: #fff;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      font-size: 14px;
+    }
+    th {
+      background: #f1f1f1;
+    }
+    input, select, textarea, button {
+      font-size: 14px;
+      padding: 5px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+    }
+    .action-buttons button {
+      margin: 2px;
+      padding: 5px 10px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .section-buttons {
+      margin: 10px 0 30px;
+      display: flex;
+      gap: 10px;
+    }
+    .section-buttons button {
+      background-color: #f0f0f0;
+      border: 1px solid #ccc;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .section-buttons button:hover {
+      background-color: #e0e0e0;
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100%;
+      }
+      tr {
+        margin-bottom: 10px;
+      }
+      td {
+        border: none;
+        border-bottom: 1px solid #ccc;
+      }
+      th {
+        background-color: #ddd;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Kitchen Temperature and Safety Log</h1>
+  <p><strong>Date:</strong> <input type="date" id="logDate"/></p>
+
+  <!-- Delivery Temperatures -->
+  <h2>Delivery Temperatures</h2>
+  <table>
+    <thead>
+      <tr><th>Supplier</th><th>Food Checked</th><th>Temperature (°C)</th><th>Action Taken</th><th>Initials</th><th>Actions</th></tr>
+    </thead>
+    <tbody id="supplier-section">
+      <tr>
+        <td>
+          <select id="supplierDropdown">
+            <option value="">Loading suppliers...</option>
+          </select>
+        </td>
+        <td><input type="text" placeholder="Food Checked"></td>
+        <td><input type="number" step="0.1" placeholder="Temp"></td>
+        <td><textarea placeholder="Action Taken"></textarea></td>
+        <td><input type="text" placeholder="Initials"></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="section-buttons">
+    <button onclick="addRow('supplier-section', 'supplier')">Add Row</button>
+  </div>
+
+  <!-- Fridges and Freezers -->
+  <h2>Fridge and Freezer Temperatures</h2>
+  <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+    <table style="flex: 1;">
+      <thead><tr><th>Unit</th><th>AM (°C)</th><th>PM (°C)</th><th>Action</th></tr></thead>
+      <tbody id="fridge-left">
+        <!-- Dynamic fridge/freezer rows will be inserted here -->
+      </tbody>
+    </table>
+    <table style="flex: 1;">
+      <thead><tr><th>Unit</th><th>AM (°C)</th><th>PM (°C)</th><th>Action</th></tr></thead>
+      <tbody id="fridge-right">
+        <!-- Dynamic fridge/freezer rows will be inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cooking / Reheating -->
+  <h2>Cooking/Reheating Temperatures</h2>
+  <table>
+    <thead><tr><th>Food</th><th>Time</th><th>Temperature</th><th>Action Taken</th><th>Actions</th></tr></thead>
+    <tbody id="cooking-section">
+      <tr>
+        <td><input type="text"></td>
+        <td><input type="time"></td>
+        <td><input type="number" step="0.1"></td>
+        <td><textarea></textarea></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="section-buttons">
+    <button onclick="addRow('cooking-section', 'cooking')">Add Row</button>
+  </div>
+
+  <!-- Hot Holding -->
+  <h2>Hot Holding Temperatures</h2>
+  <table>
+    <thead><tr><th>Food</th><th>Time</th><th>Temperature</th><th>Action Taken</th><th>Actions</th></tr></thead>
+    <tbody id="hot-section">
+      <tr>
+        <td><input type="text"></td>
+        <td><input type="time"></td>
+        <td><input type="number" step="0.1"></td>
+        <td><textarea></textarea></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="section-buttons">
+    <button onclick="addRow('hot-section', 'hot')">Add Row</button>
+  </div>
+
+  <!-- Cold Holding -->
+  <h2>Cold Holding Temperatures</h2>
+  <table>
+    <thead><tr><th>Food</th><th>Time</th><th>Temperature</th><th>Initials</th><th>Actions</th></tr></thead>
+    <tbody id="cold-section">
+      <tr>
+        <td><input type="text"></td>
+        <td><input type="time"></td>
+        <td><input type="number" step="0.1"></td>
+        <td><input type="text"></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="section-buttons">
+    <button onclick="addRow('cold-section', 'cold')">Add Row</button>
+  </div>
+
+  <!-- Water & Dishwasher -->
+  <h2>Hot Water Check</h2>
+  <p><strong>Temperature after 1 minute:</strong> <input type="number" step="0.1" id="hotWaterTemp"> | <strong>Initials:</strong> <input type="text" id="hotWaterInitials"></p>
+
+  <h2>Dishwasher Rinse Temperature Check</h2>
+  <p><strong>Rinse Temperature:</strong> <input type="number" step="0.1" id="rinseTemp"> | <strong>Initials:</strong> <input type="text" id="rinseInitials"></p>
+
+  <!-- Controls -->
+  <div class="section-buttons">
+    <button onclick="goBack()">Back</button>
+    <button onclick="saveAllData()">Save</button>
+    <button onclick="printPage()">Print</button>
+    <button onclick="downloadHTML()">Download</button>
+    <button onclick="goNext()">Next</button>
+  </div>
+</div>
+
+<script>
+  // Load suppliers and units from localStorage (set by admin page)
+  let suppliers = JSON.parse(localStorage.getItem('suppliers') || '[]');
+  let units = JSON.parse(localStorage.getItem('units') || '[]');
+
+  // Populate supplier dropdowns in supplier-section rows
+  function populateSupplierDropdowns() {
+    const supplierDropdowns = document.querySelectorAll('#supplier-section select');
+    supplierDropdowns.forEach(select => {
+      select.innerHTML = `<option value="">Select Supplier</option>` +
+        suppliers.map(s => `<option value="${s}">${s}</option>`).join('');
+    });
+  }
+
+  // Populate fridge/freezer tables dynamically
+  function populateFridgeTables() {
+    const leftTbody = document.getElementById('fridge-left');
+    const rightTbody = document.getElementById('fridge-right');
+
+    leftTbody.innerHTML = '';
+    rightTbody.innerHTML = '';
+
+    // split units roughly in half for left and right tables
+    const half = Math.ceil(units.length / 2);
+    const leftUnits = units.slice(0, half);
+    const rightUnits = units.slice(half);
+
+    function createUnitRow(unitName) {
+      return `
+        <tr>
+          <td><input type="text" value="${unitName}" readonly></td>
+          <td><input type="number" step="0.1"></td>
+          <td><input type="number" step="0.1"></td>
+          <td class="action-buttons"><button onclick="editRow(this)">Edit</button></td>
+        </tr>`;
+    }
+
+    leftUnits.forEach(unit => {
+      leftTbody.insertAdjacentHTML('beforeend', createUnitRow(unit));
+    });
+    rightUnits.forEach(unit => {
+      rightTbody.insertAdjacentHTML('beforeend', createUnitRow(unit));
+    });
+  }
+
+  // Add row function for supplier and temperature sections
+  function addRow(sectionId, type) {
+    const tbody = document.getElementById(sectionId);
+    const row = document.createElement('tr');
+    let html = '';
+    if (type === 'supplier') {
+      html = `<td><select><option value=''>Select Supplier</option>` +
+        suppliers.map(s => `<option value="${s}">${s}</option>`).join('') +
+        `</select></td>
+      <td><input type='text'></td>
+      <td><input type='number' step='0.1'></td>
+      <td><textarea></textarea></td>
+      <td><input type='text'></td>`;
+    } else if (['cooking', 'hot', 'cold'].includes(type)) {
+      html = `<td><input type='text'></td>
+      <td><input type='time'></td>
+      <td><input type='number' step='0.1'></td>`;
+      if(type === 'cold'){
+        html += `<td><input type='text'></td>`;
+      } else {
+        html += `<td><textarea></textarea></td>`;
+      }
+    }
+    html += `<td class="action-buttons">
+      <button onclick="editRow(this)">Edit</button>
+      <button onclick="deleteRow(this)">Delete</button>
+      </td>`;
+    row.innerHTML = html;
+    tbody.appendChild(row);
+  }
+
+  // Edit row placeholder (can expand as needed)
+  function editRow(btn) {
+    const row = btn.closest('tr');
+    // For now, just focus on first input for editing
+    const firstInput = row.querySelector('input, select, textarea');
+    if (firstInput) firstInput.focus();
+  }
+
+  // Delete row function
+  function deleteRow(btn) {
+    if (confirm('Are you sure you want to delete this row?')) {
+      const row = btn.closest('tr');
+      row.remove();
+    }
+  }
+
+  // Save all data to localStorage or backend (expand as needed)
+  function saveAllData() {
+    // Example: save delivery temperatures
+    const supplierData = [];
+    document.querySelectorAll('#supplier-section tr').forEach(tr => {
+      const supplier = tr.querySelector('select').value;
+      if (supplier) {
+        supplierData.push({
+          supplier,
+          foodChecked: tr.children[1].querySelector('input').value,
+          temperature: tr.children[2].querySelector('input').value,
+          actionTaken: tr.children[3].querySelector('textarea').value,
+          initials: tr.children[4].querySelector('input').value
+        });
+      }
+    });
+    localStorage.setItem('deliveryTemps', JSON.stringify(supplierData));
+
+    // Example: save fridge/freezer temps
+    const fridgeData = [];
+    [...document.querySelectorAll('#fridge-left tr'), ...document.querySelectorAll('#fridge-right tr')].forEach(tr => {
+      fridgeData.push({
+        unit: tr.children[0].querySelector('input').value,
+        amTemp: tr.children[1].querySelector('input').value,
+        pmTemp: tr.children[2].querySelector('input').value
+      });
+    });
+    localStorage.setItem('fridgeTemps', JSON.stringify(fridgeData));
+
+    // Save cooking temps
+    const cookingData = [];
+    document.querySelectorAll('#cooking-section tr').forEach(tr => {
+      cookingData.push({
+        food: tr.children[0].querySelector('input').value,
+        time: tr.children[1].querySelector('input').value,
+        temp: tr.children[2].querySelector('input').value,
+        actionTaken: tr.children[3].querySelector('textarea').value
+      });
+    });
+    localStorage.setItem('cookingTemps', JSON.stringify(cookingData));
+
+    // Save hot holding temps
+    const hotData = [];
+    document.querySelectorAll('#hot-section tr').forEach(tr => {
+      hotData.push({
+        food: tr.children[0].querySelector('input').value,
+        time: tr.children[1].querySelector('input').value,
+        temp: tr.children[2].querySelector('input').value,
+        actionTaken: tr.children[3].querySelector('textarea').value
+      });
+    });
+    localStorage.setItem('hotTemps', JSON.stringify(hotData));
+
+    // Save cold holding temps
+    const coldData = [];
+    document.querySelectorAll('#cold-section tr').forEach(tr => {
+      coldData.push({
+        food: tr.children[0].querySelector('input').value,
+        time: tr.children[1].querySelector('input').value,
+        temp: tr.children[2].querySelector('input').value,
+        initials: tr.children[3].querySelector('input').value
+      });
+    });
+    localStorage.setItem('coldTemps', JSON.stringify(coldData));
+
+    // Save water & dishwasher
+    localStorage.setItem('hotWaterTemp', document.getElementById('hotWaterTemp').value);
+    localStorage.setItem('hotWaterInitials', document.getElementById('hotWaterInitials').value);
+    localStorage.setItem('rinseTemp', document.getElementById('rinseTemp').value);
+    localStorage.setItem('rinseInitials', document.getElementById('rinseInitials').value);
+
+    alert('✅ All data saved successfully!');
+  }
+
+  // Load saved data back (optional)
+  function loadAllData() {
+    // Load suppliers dropdown
+    populateSupplierDropdowns();
+
+    // Load deliveryTemps data
+    const deliveryTemps = JSON.parse(localStorage.getItem('deliveryTemps') || '[]');
+    const supplierTbody = document.getElementById('supplier-section');
+    supplierTbody.innerHTML = '';
+    deliveryTemps.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>
+          <select>
+            <option value="">Select Supplier</option>
+            ${suppliers.map(s => `<option value="${s}" ${s === item.supplier ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </td>
+        <td><input type="text" value="${item.foodChecked}"></td>
+        <td><input type="number" step="0.1" value="${item.temperature}"></td>
+        <td><textarea>${item.actionTaken}</textarea></td>
+        <td><input type="text" value="${item.initials}"></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>`;
+      supplierTbody.appendChild(tr);
+    });
+    if (deliveryTemps.length === 0) {
+      // Show one empty row if none saved
+      addRow('supplier-section', 'supplier');
+    }
+
+    // Load fridge/freezer temps
+    populateFridgeTables();
+    const fridgeTemps = JSON.parse(localStorage.getItem('fridgeTemps') || '[]');
+    fridgeTemps.forEach((item, idx) => {
+      const rows = [...document.querySelectorAll('#fridge-left tr'), ...document.querySelectorAll('#fridge-right tr')];
+      if (rows[idx]) {
+        rows[idx].children[1].querySelector('input').value = item.amTemp || '';
+        rows[idx].children[2].querySelector('input').value = item.pmTemp || '';
+      }
+    });
+
+    // Load cooking temps
+    const cookingTemps = JSON.parse(localStorage.getItem('cookingTemps') || '[]');
+    const cookingTbody = document.getElementById('cooking-section');
+    cookingTbody.innerHTML = '';
+    cookingTemps.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" value="${item.food}"></td>
+        <td><input type="time" value="${item.time}"></td>
+        <td><input type="number" step="0.1" value="${item.temp}"></td>
+        <td><textarea>${item.actionTaken}</textarea></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>`;
+      cookingTbody.appendChild(tr);
+    });
+    if (cookingTemps.length === 0) addRow('cooking-section', 'cooking');
+
+    // Load hot temps
+    const hotTemps = JSON.parse(localStorage.getItem('hotTemps') || '[]');
+    const hotTbody = document.getElementById('hot-section');
+    hotTbody.innerHTML = '';
+    hotTemps.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" value="${item.food}"></td>
+        <td><input type="time" value="${item.time}"></td>
+        <td><input type="number" step="0.1" value="${item.temp}"></td>
+        <td><textarea>${item.actionTaken}</textarea></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>`;
+      hotTbody.appendChild(tr);
+    });
+    if (hotTemps.length === 0) addRow('hot-section', 'hot');
+
+    // Load cold temps
+    const coldTemps = JSON.parse(localStorage.getItem('coldTemps') || '[]');
+    const coldTbody = document.getElementById('cold-section');
+    coldTbody.innerHTML = '';
+    coldTemps.forEach(item => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="text" value="${item.food}"></td>
+        <td><input type="time" value="${item.time}"></td>
+        <td><input type="number" step="0.1" value="${item.temp}"></td>
+        <td><input type="text" value="${item.initials}"></td>
+        <td class="action-buttons">
+          <button onclick="editRow(this)">Edit</button>
+          <button onclick="deleteRow(this)">Delete</button>
+        </td>`;
+      coldTbody.appendChild(tr);
+    });
+    if (coldTemps.length === 0) addRow('cold-section', 'cold');
+
+    // Load water and dishwasher
+    document.getElementById('hotWaterTemp').value = localStorage.getItem('hotWaterTemp') || '';
+    document.getElementById('hotWaterInitials').value = localStorage.getItem('hotWaterInitials') || '';
+    document.getElementById('rinseTemp').value = localStorage.getItem('rinseTemp') || '';
+    document.getElementById('rinseInitials').value = localStorage.getItem('rinseInitials') || '';
+
+    // Load date
+    document.getElementById('logDate').value = localStorage.getItem('logDate') || '';
+  }
+
+  // Save date on change
+  document.getElementById('logDate').addEventListener('change', function() {
+    localStorage.setItem('logDate', this.value);
+  });
+
+  // Print page
+  function printPage() {
+    window.print();
+  }
+
+  // Download HTML of page
+  function downloadHTML() {
+    const htmlContent = document.documentElement.outerHTML;
+    const blob = new Blob([htmlContent], {type: 'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'page5.html';
+    a.click();
+  }
+
+  // Navigation buttons
+  function goBack() {
+    window.location.href = 'page4.html';
+  }
+  function goNext() {
+    window.location.href = 'page6.html';
+  }
+
+  // Initialize page on load
+  window.onload = function() {
+    populateSupplierDropdowns();
+    populateFridgeTables();
+    loadAllData();
+  }
+</script>
+
+</body>
+</html>

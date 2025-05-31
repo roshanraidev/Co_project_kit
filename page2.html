@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weekly Probe Check Record</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 1000px;
+      margin: auto;
+    }
+    h1 { text-align: center; }
+    .info { margin-bottom: 20px; }
+    .info label { font-weight: bold; }
+    .warning {
+      background-color: #ffe5e5;
+      border: 1px solid red;
+      padding: 10px;
+      color: red;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow-x: auto;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: center;
+    }
+    th { background-color: #f0f0f0; }
+
+    .actions {
+      margin-top: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .actions button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: #28a745;
+      color: white;
+      font-size: 14px;
+      cursor: pointer;
+      min-width: 110px;
+    }
+
+    .actions button:hover {
+      background-color: #218838;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 0 4px;
+    }
+
+    canvas {
+      border: 1px solid #ccc;
+      cursor: crosshair;
+    }
+
+    .signature-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .signature-wrapper button {
+      font-size: 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-top: 4px;
+      padding: 4px 10px;
+    }
+
+    .signature-wrapper button:hover {
+      background-color: #b02a37;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Weekly Probe Check Record</h1>
+    <div class="info">
+      <p><label>Branch:</label> PARSONS GREEN</p>
+      <p><label>Branch Code:</label> 003</p>
+      <p><label for="week-ending">Week Ending:</label>
+        <input type="date" id="week-ending" name="week-ending">
+      </p>
+    </div>
+    <div class="warning">
+      If these targets are not met, speak to the Manager immediately
+    </div>
+    <ul>
+      <li>Probe checks to be carried out weekly in melting ice and boiling water.</li>
+      <li>Ice checks to be -1°C to +1°C</li>
+      <li>Boiling water check 99°C to 101°C</li>
+    </ul>
+    <table id="probeTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Probe No.</th>
+          <th>Temperature in Ice (°C)</th>
+          <th>Temperature in Hot Water (°C)</th>
+          <th>Signature</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div class="actions">
+      <button onclick="goBack()">⬅️ Back</button>
+      <button onclick="addRow()">Add Row</button>
+      <button onclick="saveTable()">💾 Save</button>
+      <button onclick="downloadHTML()">⬇️ Download</button>
+      <button onclick="goNext()">Next ⮕</button>
+    </div>
+  </div>
+
+  <script>
+    function initSignature(canvas) {
+      let isDrawing = false;
+      const ctx = canvas.getContext("2d");
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 2;
+
+      canvas.addEventListener("mousedown", () => isDrawing = true);
+      canvas.addEventListener("mouseup", () => {
+        isDrawing = false;
+        ctx.beginPath();
+      });
+      canvas.addEventListener("mouseleave", () => isDrawing = false);
+      canvas.addEventListener("mousemove", e => {
+        if (!isDrawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+      });
+    }
+
+    function clearSignature(button) {
+      const canvas = button.previousElementSibling;
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function addRow(data = ["", "", "", "", ""]) {
+      const table = document.getElementById('probeTable').getElementsByTagName('tbody')[0];
+      const newRow = table.insertRow();
+
+      const fields = ['date', 'text', 'text', 'text'];
+      fields.forEach((type, index) => {
+        const td = newRow.insertCell();
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = data[index] || "";
+        td.appendChild(input);
+      });
+
+      const signatureTd = newRow.insertCell();
+      const wrapper = document.createElement('div');
+      wrapper.className = 'signature-wrapper';
+
+      const canvas = document.createElement('canvas');
+      canvas.width = 150;
+      canvas.height = 50;
+      wrapper.appendChild(canvas);
+
+      const clearBtn = document.createElement('button');
+      clearBtn.textContent = 'Clear';
+      clearBtn.onclick = () => clearSignature(clearBtn);
+      wrapper.appendChild(clearBtn);
+
+      signatureTd.appendChild(wrapper);
+      initSignature(canvas);
+
+      if (data[4]) {
+        const img = new Image();
+        img.onload = () => {
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0);
+        };
+        img.src = data[4];
+      }
+
+      const actionTd = newRow.insertCell();
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn';
+      editBtn.innerHTML = '✏️';
+      editBtn.onclick = () => {
+        const inputs = newRow.querySelectorAll('input');
+        const isDisabled = inputs[0].disabled;
+        inputs.forEach(input => input.disabled = !isDisabled);
+        editBtn.innerHTML = isDisabled ? '🔒' : '✏️';
+      };
+
+      const delBtn = document.createElement('button');
+      delBtn.className = 'icon-btn';
+      delBtn.innerHTML = '🗑️';
+      delBtn.onclick = () => newRow.remove();
+
+      actionTd.appendChild(editBtn);
+      actionTd.appendChild(delBtn);
+    }
+
+    function saveTable() {
+      const rows = document.querySelectorAll('#probeTable tbody tr');
+      const data = [];
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('input');
+        const rowData = Array.from(inputs).map(input => input.value);
+        const canvas = row.querySelector('canvas');
+        const signatureData = canvas ? canvas.toDataURL() : null;
+        rowData.push(signatureData);
+        data.push(rowData);
+      });
+
+      localStorage.setItem('probeData', JSON.stringify(data));
+      alert('✅ Data saved!');
+    }
+
+    function loadTable() {
+      const data = JSON.parse(localStorage.getItem('probeData') || '[]');
+      data.forEach(row => addRow(row));
+    }
+
+    function downloadHTML() {
+      const htmlContent = document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Weekly_Probe_Check_Record.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function goBack() {
+      window.location.href = 'page1.html';
+    }
+
+    function goNext() {
+      window.location.href = 'page3.html';
+    }
+
+    window.onload = function () {
+      loadTable();
+      applyReadonlyMode();
+    };
+
+    function applyReadonlyMode() {
+      const isReadonly = new URLSearchParams(window.location.search).get('readonly') === 'true';
+      if (!isReadonly) return;
+
+      // Disable inputs
+      document.querySelectorAll("input").forEach(el => {
+        el.disabled = true;
+        el.readOnly = true;
+      });
+
+      // Disable canvas interaction
+      document.querySelectorAll("canvas").forEach(canvas => {
+        canvas.style.pointerEvents = "none";
+      });
+
+      // Hide buttons and controls
+      document.querySelectorAll("button, .actions").forEach(el => {
+        el.style.display = "none";
+      });
+    }
+  </script>
+</body>
+</html>

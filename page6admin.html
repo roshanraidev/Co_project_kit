@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin - Audit Checklist Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    .form-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    button {
+      padding: 10px 16px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      background: #fff;
+      padding: 10px 15px;
+      margin-bottom: 10px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 0 6px #ddd;
+    }
+    li button {
+      background-color: #dc3545;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+    li button:hover {
+      background-color: #a71d2a;
+    }
+    .save-btn {
+      display: block;
+      width: 100%;
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Audit Checklist Admin</h1>
+
+  <div class="form-group">
+    <input id="newCheck" type="text" placeholder="Enter new checklist item" />
+    <button onclick="addCheck()">Add</button>
+  </div>
+
+  <ul id="checklist"></ul>
+
+  <button class="save-btn" onclick="saveChecks()">Save Checklist</button>
+
+  <script>
+    // Load checklist from localStorage or default list
+    let checks = JSON.parse(localStorage.getItem("auditChecks")) || [
+      "Kitchen surfaces clean and in good repair",
+      "Store rooms clean and in good repair",
+      "Staff room clean and in good repair",
+      "Delivery checklist completed",
+      "Fridge & freezer temperature records completed",
+      "Cooking temperature monitoring records completed",
+      "Hot holding temperature monitoring records completed",
+      "Cooling temperature records completed",
+      "Probe calibration checks carried out accurately",
+      "Cleaning records completed",
+      "Daily closedown checklists completed",
+      "Staff training up to date",
+      "Probe functional, clean",
+      "Sanitising wipes present",
+      "Kitchen equipment in good repair and clean",
+      "Repairs attended to/reported (if appropriate)",
+      "Kitchen canopy clean and filters clean",
+      "All food covered, date coded and in date",
+      "Wash hand basins provided with soap and hand towels",
+      "External bin area clean and tidy",
+      "Insectocutor clean and working order",
+      "No evidence of pest activity",
+      "Chemicals fully stocked and no unauthorised chemicals in use",
+      "Food only bought from nominated/authorised suppliers",
+      "Clean protective clothing being worn by kitchen employees"
+    ];
+
+    const checklistUL = document.getElementById("checklist");
+    const newCheckInput = document.getElementById("newCheck");
+
+    function renderList() {
+      checklistUL.innerHTML = "";
+      checks.forEach((item, idx) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.onclick = () => {
+          checks.splice(idx, 1);
+          renderList();
+        };
+        li.appendChild(removeBtn);
+        checklistUL.appendChild(li);
+      });
+    }
+
+    function addCheck() {
+      const val = newCheckInput.value.trim();
+      if (val && !checks.includes(val)) {
+        checks.push(val);
+        newCheckInput.value = "";
+        renderList();
+      }
+    }
+
+    function saveChecks() {
+      localStorage.setItem("auditChecks", JSON.stringify(checks));
+      alert("✅ Audit checklist saved!");
+    }
+
+    renderList();
+  </script>
+</body>
+</html>

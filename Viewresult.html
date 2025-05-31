@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Weekly Results</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h2 {
+      text-align: center;
+    }
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+    .section {
+      margin-bottom: 40px;
+    }
+    iframe {
+      width: 100%;
+      height: 600px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h2>📋 View Weekly Kitchen Records</h2>
+
+  <select id="weekSelector">
+    <option value="">-- Select a Week --</option>
+  </select>
+
+  <div id="resultOutput">Please select a week to view results.</div>
+
+  <script>
+    function getWeekKeys() {
+      const keys = Object.keys(localStorage);
+      const weeks = new Set();
+      keys.forEach(key => {
+        const match = key.match(/WEEK: \d{2}\.\d{2}\.\d{4} - \d{2}\.\d{2}\.\d{4}/);
+        if (match) weeks.add(match[0]);
+      });
+      return Array.from(weeks);
+    }
+
+    function populateWeekDropdown() {
+      const selector = document.getElementById("weekSelector");
+      const weeks = getWeekKeys();
+      const latest = localStorage.getItem("coverpage_weekText") || localStorage.getItem("latestSelectedWeek");
+
+      weeks.forEach(week => {
+        const option = document.createElement("option");
+        option.value = week;
+        option.textContent = week;
+        selector.appendChild(option);
+      });
+
+      if (latest && weeks.includes(latest)) {
+        selector.value = latest;
+      }
+    }
+
+    function loadWeekData(weekKey) {
+      const output = document.getElementById("resultOutput");
+      if (!weekKey) {
+        output.textContent = "⚠️ No week selected.";
+        return;
+      }
+
+      localStorage.setItem("coverpage_weekText", weekKey);
+      output.innerHTML = "";
+
+      const pages = [
+        { file: "coverpage.html" },
+        { file: "page1.html" },
+        { file: "page2.html" },
+        { file: "page3.html" },
+        { file: "page4.html" },
+        { file: "page5.html" },
+        { file: "page6.html" }
+      ];
+
+      pages.forEach(({ file }) => {
+        const section = document.createElement("div");
+        section.className = "section";
+        const iframe = document.createElement("iframe");
+        iframe.src = `${file}?readonly=true`;
+        section.appendChild(iframe);
+        output.appendChild(section);
+      });
+    }
+
+    document.getElementById("weekSelector").addEventListener("change", function (e) {
+      loadWeekData(e.target.value);
+    });
+
+    window.onload = populateWeekDropdown;
+  </script>
+</body>
+</html>

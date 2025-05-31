@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kitchen Dairy - Cocotte</title>
+  <style>
+    body {
+      font-family: 'Georgia', serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .paper {
+      background: white;
+      width: 100%;
+      max-width: 600px;
+      padding: 40px 30px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      text-align: center;
+      border-radius: 8px;
+    }
+
+    h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin: 20px 0 5px;
+    }
+
+    h3 {
+      font-size: 20px;
+      margin: 5px 0 30px;
+    }
+
+    .week {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .date-picker {
+      margin-bottom: 30px;
+    }
+
+    .date-picker input {
+      margin: 0 5px;
+      padding: 6px 10px;
+      font-size: 15px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .buttons button {
+      padding: 10px 18px;
+      font-size: 15px;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      min-width: 100px;
+      transition: background 0.2s;
+    }
+
+    .back-btn { background-color: #6c757d; }
+    .next-btn { background-color: #007bff; }
+
+    .buttons button:hover {
+      opacity: 0.9;
+    }
+
+    @media (max-width: 500px) {
+      .buttons button {
+        font-size: 14px;
+        padding: 10px 14px;
+      }
+
+      h1 { font-size: 26px; }
+      h2 { font-size: 18px; }
+      h3 { font-size: 17px; }
+      .week { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="paper">
+    <h1>COCOTTE</h1>
+    <h2>KITCHEN DAIRY</h2>
+    <h3>PARSONS GREEN</h3>
+
+    <div class="date-picker">
+      <label>Start Date: <input type="date" id="startDate"></label>
+      <label>End Date: <input type="date" id="endDate"></label>
+      <button onclick="updateWeek()">Set Week</button>
+    </div>
+
+    <div class="week" id="weekDisplay">WEEK: [Select dates]</div>
+
+    <div class="buttons">
+      <button class="back-btn" onclick="goBack()">⬅️ Back</button>
+      <button class="next-btn" onclick="goNext()">Next ⮕</button>
+    </div>
+  </div>
+
+  <script>
+    function formatDateString(dateStr) {
+      const date = new Date(dateStr);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}.${month}.${year}`;
+    }
+
+    function updateWeek() {
+      const start = document.getElementById("startDate").value;
+      const end = document.getElementById("endDate").value;
+      const display = document.getElementById("weekDisplay");
+
+      if (start && end) {
+        const weekText = `WEEK: ${formatDateString(start)} - ${formatDateString(end)}`;
+        display.textContent = weekText;
+        localStorage.setItem("coverpage_weekText", weekText);
+        localStorage.setItem("coverpage_startDate", start);
+        localStorage.setItem("coverpage_endDate", end);
+        localStorage.setItem("latestSelectedWeek", weekText);
+      } else {
+        display.textContent = "WEEK: [Select dates]";
+      }
+    }
+
+    function goNext() {
+      window.location.href = "page1.html";
+    }
+
+    function goBack() {
+      window.location.href = "Index.html";
+    }
+
+    window.onload = function () {
+      const savedStart = localStorage.getItem("coverpage_startDate");
+      const savedEnd = localStorage.getItem("coverpage_endDate");
+      const savedWeek = localStorage.getItem("coverpage_weekText");
+
+      if (savedStart) document.getElementById("startDate").value = savedStart;
+      if (savedEnd) document.getElementById("endDate").value = savedEnd;
+      if (savedWeek) document.getElementById("weekDisplay").textContent = savedWeek;
+    };
+
+    // 🔒 Readonly mode enforcement
+    (function enforceReadonlyMode() {
+      const isReadonly = new URLSearchParams(window.location.search).get('readonly') === 'true';
+      if (!isReadonly) return;
+
+      // Disable inputs
+      document.querySelectorAll("input").forEach(el => {
+        el.disabled = true;
+        el.readOnly = true;
+      });
+
+      // Hide buttons and sections
+      document.querySelectorAll("button, .buttons").forEach(el => {
+        el.style.display = "none";
+      });
+    })();
+  </script>
+</body>
+</html>

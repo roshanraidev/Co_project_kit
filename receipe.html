@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Recipe Viewer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;600&display=swap">
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #111;
+      --highlight-bg: #e0e0e0;
+      --content-bg: #f4f4f4;
+      --text-color: #333;
+      --shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      background: var(--content-bg);
+      color: var(--text-color);
+      display: flex;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    body.dark {
+      --sidebar-bg: #1e1e1e;
+      --sidebar-text: #eee;
+      --highlight-bg: #333;
+      --content-bg: #121212;
+      --text-color: #eee;
+    }
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      padding-top: 60px;
+      transition: transform 0.4s ease-in-out, box-shadow 0.4s;
+      z-index: 10;
+      box-shadow: var(--shadow);
+      border-right: 1px solid #ddd;
+    }
+    .sidebar.closed {
+      transform: translateX(-100%);
+      box-shadow: none;
+    }
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .sidebar li {
+      padding: 16px 24px;
+      cursor: pointer;
+      transition: background 0.3s, padding-left 0.3s;
+    }
+    .sidebar li:hover, .sidebar li.active {
+      background: var(--highlight-bg);
+      padding-left: 32px;
+    }
+    .toggle-btn, .theme-toggle {
+      position: fixed;
+      top: 15px;
+      background: var(--sidebar-bg);
+      color: var(--text-color);
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      z-index: 20;
+      box-shadow: var(--shadow);
+      transition: background 0.3s;
+    }
+    .toggle-btn:hover, .theme-toggle:hover {
+      background: var(--highlight-bg);
+    }
+    .toggle-btn { left: 15px; }
+    .theme-toggle { right: 15px; }
+    .content {
+      margin-left: 260px;
+      padding: 40px 30px;
+      flex-grow: 1;
+      width: 100%;
+      max-width: 1100px;
+      transition: margin-left 0.4s;
+    }
+    .sidebar.closed + .content {
+      margin-left: 0;
+    }
+    .search-bar {
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .search-bar input {
+      padding: 10px 14px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      width: 300px;
+    }
+    .recipe {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+      display: flex;
+      flex-direction: row-reverse;
+      gap: 20px;
+      align-items: flex-start;
+    }
+    body.dark .recipe {
+      background: #222;
+    }
+    .recipe img {
+      width: 220px;
+      height: auto;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .recipe-content {
+      flex: 1;
+    }
+    .recipe-content h2 {
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+    .recipe-content p {
+      margin: 6px 0;
+      line-height: 1.6;
+    }
+    .bold { font-weight: bold; }
+    @media (max-width: 768px) {
+      .content { margin-left: 0; padding: 20px; }
+      .recipe { flex-direction: column; align-items: flex-start; }
+      .sidebar { width: 220px; }
+      .search-bar { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+  <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+  <div class="sidebar" id="sidebar">
+    <ul>
+      <li onclick="loadCategory(this, 'Sauce and Marinade')">Sauce and Marinade</li>
+      <li onclick="loadCategory(this, 'Dressing')">Dressing</li>
+      <li onclick="loadCategory(this, 'Side')">Side</li>
+      <li onclick="loadCategory(this, 'Aperto')">Aperto</li>
+      <li onclick="loadCategory(this, 'Brunch')">Brunch</li>
+      <li onclick="loadCategory(this, 'Supra Sauce')">Supra Sauce</li>
+    </ul>
+  </div>
+  <div class="content">
+    <h1>📖 Recipe Viewer</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by dish name..." oninput="filterRecipes()" />
+    </div>
+    <div id="recipeContainer"></div>
+  </div>
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.classList.toggle('closed');
+      document.querySelector('.content').classList.toggle('sidebar-closed');
+    }
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+    }
+    let currentRecipes = [];
+    function loadCategory(element, category) {
+      const container = document.getElementById('recipeContainer');
+      container.innerHTML = '';
+      const allRecipes = JSON.parse(localStorage.getItem('recipes')) || {};
+      currentRecipes = allRecipes[category] || [];
+      document.querySelectorAll('.sidebar li').forEach(li => li.classList.remove('active'));
+      element.classList.add('active');
+      renderRecipes(currentRecipes);
+    }
+    function filterRecipes() {
+      const keyword = document.getElementById('searchInput').value.toLowerCase();
+      const filtered = currentRecipes.filter(recipe => recipe.dish.toLowerCase().includes(keyword));
+      renderRecipes(filtered);
+    }
+    function renderRecipes(recipes) {
+      const container = document.getElementById('recipeContainer');
+      container.innerHTML = '';
+      if (recipes.length === 0) {
+        container.innerHTML = '<p>No recipes found.</p>';
+        return;
+      }
+      recipes.forEach(recipe => {
+        const div = document.createElement('div');
+        div.className = 'recipe';
+        const img = document.createElement('img');
+        img.src = recipe.image || 'https://via.placeholder.com/200';
+        img.alt = recipe.dish;
+        const content = document.createElement('div');
+        content.className = 'recipe-content';
+        content.innerHTML = `
+          <h2>${recipe.dish}</h2>
+          <p><span class="bold">Ingredients:</span><br>${recipe.ingredients.replace(/\n/g, '<br>')}</p>
+          <p><span class="bold">Method:</span><br>${recipe.method.replace(/\n/g, '<br>')}</p>
+          <p><span class="bold">Yield:</span> ${recipe.yield}</p>
+          <p><span class="bold">Shelf-life:</span> ${recipe.shelfLife}</p>
+          <p><span class="bold">Allergens:</span> ${recipe.allergies}</p>
+        `;
+        div.appendChild(img);
+        div.appendChild(content);
+        container.appendChild(div);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cleaning Schedule</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      margin: 0;
+    }
+
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 1000px;
+      margin: auto;
+    }
+
+    h2 {
+      text-align: center;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: left;
+      border: 1px solid #ccc;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    td input[type="checkbox"] {
+      transform: scale(1.2);
+      cursor: pointer;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+
+    #backBtn {
+      background-color: #6c757d;
+      color: white;
+      margin-right: 10px;
+    }
+    #backBtn:hover {
+      background-color: #5a6268;
+    }
+
+    #saveBtn {
+      background-color: #007bff;
+      color: white;
+      margin-right: 10px;
+    }
+    #saveBtn:hover {
+      background-color: #0056b3;
+    }
+
+    #nextBtn {
+      background-color: #28a745;
+      color: white;
+    }
+    #nextBtn:hover {
+      background-color: #1e7e34;
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 13px;
+      }
+
+      input {
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Cleaning Schedule</h2>
+
+    <form id="scheduleForm">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Item to be Cleaned</th>
+              <th>Chemical</th>
+              <th>PPE</th>
+              <th>Mon</th>
+              <th>Tue</th>
+              <th>Wed</th>
+              <th>Thu</th>
+              <th>Fri</th>
+              <th>Sat</th>
+              <th>Sun</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Rows will be injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button type="button" id="backBtn">Back</button>
+        <button type="button" id="saveBtn">Save</button>
+        <button type="button" id="nextBtn">Next</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function restoreData() {
+      const data = localStorage.getItem("cleaningSchedule_admin");
+      if (!data) return;
+
+      const parsed = JSON.parse(data);
+
+      const tbody = document.querySelector("table tbody");
+      tbody.innerHTML = ""; // Clear old rows
+
+      let index = 0;
+      while (parsed[`item_${index}`]) {
+        const tr = document.createElement("tr");
+
+        ["item", "chemical", "ppe"].forEach(field => {
+          const td = document.createElement("td");
+          td.textContent = parsed[`${field}_${index}`] || "";
+          tr.appendChild(td);
+        });
+
+        ["mon", "tue", "wed", "thu", "fri", "sat", "sun"].forEach(day => {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.checked = parsed[`${day}_${index}`] || false;
+          td.appendChild(input);
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+        index++;
+      }
+    }
+
+    function saveAll() {
+      const tbody = document.querySelector("table tbody");
+      const rows = tbody.querySelectorAll("tr");
+      const data = JSON.parse(localStorage.getItem("cleaningSchedule_admin")) || {};
+
+      rows.forEach((tr, index) => {
+        ["mon", "tue", "wed", "thu", "fri", "sat", "sun"].forEach((day, dayIndex) => {
+          const checkbox = tr.cells[3 + dayIndex].querySelector("input[type=checkbox]");
+          data[`${day}_${index}`] = checkbox.checked;
+        });
+      });
+
+      localStorage.setItem("cleaningSchedule_admin", JSON.stringify(data));
+      alert("Schedule saved successfully!");
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", saveAll);
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      window.location.href = "coverpage.html";
+    });
+
+    document.getElementById("nextBtn").addEventListener("click", () => {
+      window.location.href = "page2.html";
+    });
+
+    window.onload = restoreData;
+  </script>
+</body>
+</html>

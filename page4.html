@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Daily Cleaning Checklist</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 0;
+    padding: 20px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    font-size: 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background-color: #f0f0f0;
+  }
+  input, canvas, button {
+    font-size: 14px;
+    padding: 6px;
+  }
+  canvas {
+    border: 1px solid #ccc;
+    width: 100%;
+    height: 40px;
+    cursor: crosshair;
+    display: block;
+  }
+  .section-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .section-buttons button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    min-width: 110px;
+  }
+  .section-buttons button:hover {
+    background-color: #218838;
+  }
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+    table, thead, tbody, th, td, tr {
+      display: block;
+    }
+    thead {
+      display: none;
+    }
+    tbody tr {
+      margin-bottom: 20px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 10px;
+      background: #fff;
+    }
+    tbody td {
+      text-align: left;
+      padding-left: 50%;
+      position: relative;
+    }
+    tbody td:before {
+      position: absolute;
+      left: 10px;
+      top: 8px;
+      white-space: nowrap;
+      font-weight: bold;
+    }
+    tbody td:nth-of-type(1):before { content: "Task"; }
+    tbody td:nth-of-type(2):before { content: "Chef Sign"; }
+    tbody td:nth-of-type(3):before { content: "Manager Sign"; }
+    input, button, canvas {
+      font-size: 12px;
+      padding: 4px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h2>Daily Cleaning Checklist</h2>
+  <p>
+    <strong>Day:</strong> <input type="text" id="dayInput" placeholder="e.g., Monday">
+    &nbsp; <strong>AM Chef:</strong> <input type="text" id="amChefInput">
+    &nbsp; <strong>PM Chef:</strong> <input type="text" id="pmChefInput">
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Task</th>
+        <th>Chef Sign</th>
+        <th>Manager Sign</th>
+      </tr>
+    </thead>
+    <tbody id="taskTableBody">
+      <!-- Rows dynamically generated -->
+    </tbody>
+  </table>
+
+  <div class="section-buttons">
+    <button onclick="printPage()">Print</button>
+    <button onclick="downloadHTML()">Download</button>
+    <button onclick="saveChecklist()">Save</button>
+    <button onclick="goBack()">Back</button>
+    <button onclick="goNext()">Next</button>
+  </div>
+</div>
+
+<script>
+  // Load tasks from localStorage (from admin)
+  const tasks = JSON.parse(localStorage.getItem('cleaningTasks')) || [];
+
+  function createRows() {
+    const tbody = document.getElementById('taskTableBody');
+    tbody.innerHTML = ''; // Clear existing rows
+
+    if (tasks.length === 0) {
+      const noTasksRow = document.createElement('tr');
+      const noTasksCell = document.createElement('td');
+      noTasksCell.colSpan = 3;
+      noTasksCell.style.textAlign = 'center';
+      noTasksCell.textContent = 'No cleaning tasks defined. Please add tasks in the Admin page.';
+      noTasksRow.appendChild(noTasksCell);
+      tbody.appendChild(noTasksRow);
+      return;
+    }
+
+    tasks.forEach((task, i) => {
+      const row = document.createElement('tr');
+
+      const taskCell = document.createElement('td');
+      taskCell.textContent = task;
+      row.appendChild(taskCell);
+
+      const chefSignCell = document.createElement('td');
+      const chefCanvas = document.createElement('canvas');
+      chefCanvas.id = `chef-sign-${i}`;
+      chefCanvas.width = 200;
+      chefCanvas.height = 40;
+      chefSignCell.appendChild(chefCanvas);
+      row.appendChild(chefSignCell);
+
+      const managerSignCell = document.createElement('td');
+      const managerCanvas = document.createElement('canvas');
+      managerCanvas.id = `manager-sign-${i}`;
+      managerCanvas.width = 200;
+      managerCanvas.height = 40;
+      managerSignCell.appendChild(managerCanvas);
+      row.appendChild(managerSignCell);
+
+      tbody.appendChild(row);
+    });
+  }
+
+  function setupSignature(canvas) {
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      drawing = true;
+      const pos = getPos(e);
+      ctx.beginPath();
+      ctx.moveTo(pos.x, pos.y);
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      drawing = false;
+      ctx.beginPath();
+    });
+
+    canvas.addEventListener('pointermove', e => {
+      if (!drawing) return;
+      const pos = getPos(e);
+      ctx.lineWidth = 1;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = 'black';
+      ctx.lineTo(pos.x, pos.y);
+      ctx.stroke();
+    });
+  }
+
+  function printPage() {
+    window.print();
+  }
+
+  function downloadHTML() {
+    const htmlContent = document.documentElement.outerHTML;
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'cleaning_checklist.html';
+    a.click();
+  }
+
+  function saveChecklist() {
+    const data = {
+      day: document.getElementById('dayInput').value,
+      amChef: document.getElementById('amChefInput').value,
+      pmChef: document.getElementById('pmChefInput').value,
+      canvases: {}
+    };
+
+    document.querySelectorAll('canvas').forEach(canvas => {
+      data.canvases[canvas.id] = canvas.toDataURL();
+    });
+
+    localStorage.setItem('cleaningChecklistData', JSON.stringify(data));
+    alert('✅ Checklist saved locally.');
+  }
+
+  function restoreChecklist() {
+    const saved = localStorage.getItem('cleaningChecklistData');
+    if (!saved) return;
+
+    const data = JSON.parse(saved);
+    document.getElementById('dayInput').value = data.day;
+    document.getElementById('amChefInput').value = data.amChef;
+    document.getElementById('pmChefInput').value = data.pmChef;
+
+    Object.entries(data.canvases).forEach(([id, imgData]) => {
+      const canvas = document.getElementById(id);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => ctx.drawImage(img, 0, 0);
+      img.src = imgData;
+    });
+  }
+
+  function goBack() {
+    window.location.href = 'page3.html';
+  }
+
+  function goNext() {
+    window.location.href = 'page5.html';
+  }
+
+  window.onload = () => {
+    createRows();
+    document.querySelectorAll('canvas').forEach(setupSignature);
+    restoreChecklist();
+  };
+</script>
+</body>
+</html>

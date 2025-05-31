@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin: Manage Tasks</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f4f8;
+      margin: 0; padding: 20px;
+      display: flex; justify-content: center;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgb(0 0 0 / 0.1);
+      max-width: 600px;
+      width: 100%;
+      animation: fadeIn 0.8s ease forwards;
+    }
+    h2 {
+      margin-bottom: 20px;
+      text-align: center;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+    input[type=text] {
+      width: 80%;
+      padding: 12px 15px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: 0.3s;
+      margin-right: 10px;
+    }
+    input[type=text]:focus {
+      border-color: #28a745;
+      outline: none;
+      box-shadow: 0 0 8px rgba(40, 167, 69, 0.4);
+    }
+    button.add-btn {
+      padding: 12px 20px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
+    button.add-btn:hover {
+      background-color: #218838;
+    }
+    ul.task-list {
+      margin-top: 25px;
+      list-style: none;
+      padding-left: 0;
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+    }
+    ul.task-list li {
+      padding: 10px 15px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      color: #34495e;
+      transition: background-color 0.3s ease;
+    }
+    ul.task-list li:hover {
+      background-color: #f1f9f4;
+    }
+    ul.task-list li button.remove-btn {
+      background: #e74c3c;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 6px 10px;
+      transition: background-color 0.3s ease;
+    }
+    ul.task-list li button.remove-btn:hover {
+      background-color: #c0392b;
+    }
+    button.save-btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px 0;
+      font-size: 18px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      box-shadow: 0 5px 15px rgb(0 123 255 / 0.4);
+      transition: background-color 0.3s ease;
+    }
+    button.save-btn:hover {
+      background-color: #0056b3;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(30px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Manage Cleaning Tasks</h2>
+    <div>
+      <input type="text" id="newTaskInput" placeholder="Enter new task here" />
+      <button class="add-btn" id="addTaskBtn">Add Task</button>
+    </div>
+    <ul class="task-list" id="taskList"></ul>
+    <button class="save-btn" id="saveBtn">Save Tasks</button>
+  </div>
+
+  <script>
+    const taskListEl = document.getElementById('taskList');
+    const newTaskInput = document.getElementById('newTaskInput');
+    const addTaskBtn = document.getElementById('addTaskBtn');
+    const saveBtn = document.getElementById('saveBtn');
+
+    let tasks = JSON.parse(localStorage.getItem('cleaningTasks')) || [
+      "FRIDGES CLEANED", "SURFACES SANITISED", "ALL FOOD SEALED & LABELLED",
+      "SINKS EMPTY + CLEANED", "DISHWASHER CLEANED", "CHOPPING BOARD WASHED ABOVE 80°C",
+      "OVENS + ROTISSERIES + FLASH OVEN CLEANED", "FRYER CLEANED / OIL CHANGED",
+      "SHELVES CLEANED", "WALLS + CEILING WIPED AND CLEANED", "FILTERS SOAKED",
+      "EXTRACTION + ALL EQUIPMENT", "SWITCHED OFF", "ALL GARBAGE DISPOSED OF",
+      "SWEEP & MOP (MOP head replaced)", "STAFF ROOM TIDIED", "ORDERS PLACED"
+    ];
+
+    function renderTasks() {
+      taskListEl.innerHTML = '';
+      tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.textContent = task;
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.className = 'remove-btn';
+        removeBtn.onclick = () => {
+          tasks.splice(index, 1);
+          renderTasks();
+        };
+
+        li.appendChild(removeBtn);
+        taskListEl.appendChild(li);
+      });
+    }
+
+    addTaskBtn.addEventListener('click', () => {
+      const val = newTaskInput.value.trim();
+      if (val && !tasks.includes(val)) {
+        tasks.push(val);
+        newTaskInput.value = '';
+        renderTasks();
+      }
+    });
+
+    saveBtn.addEventListener('click', () => {
+      localStorage.setItem('cleaningTasks', JSON.stringify(tasks));
+      alert('✅ Tasks saved successfully!');
+    });
+
+    // Allow pressing Enter to add task
+    newTaskInput.addEventListener('keyup', e => {
+      if (e.key === 'Enter') addTaskBtn.click();
+    });
+
+    renderTasks();
+  </script>
+</body>
+</html>

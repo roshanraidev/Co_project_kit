@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weekly Food Holding Cabinet Record</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .info {
+      margin-bottom: 10px;
+    }
+
+    .info label {
+      font-weight: bold;
+    }
+
+    .notice {
+      background-color: #fff3cd;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-left: 5px solid #ffc107;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      text-align: center;
+      padding: 6px;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
+
+    input[type="text"],
+    input[type="time"],
+    input[type="date"] {
+      width: 100%;
+      padding: 4px;
+      box-sizing: border-box;
+    }
+
+    .button-group {
+      margin-top: 15px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .add-button, .save-button {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .add-button:hover, .save-button:hover {
+      background-color: #218838;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      margin-left: 4px;
+    }
+
+    .warning-input {
+      border: 2px solid red !important;
+    }
+
+    @media (max-width: 768px) {
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody tr {
+        margin-bottom: 15px;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 10px;
+      }
+
+      tbody td {
+        text-align: left;
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        border-bottom: 1px solid #eee;
+      }
+
+      tbody td:before {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+      }
+
+      tbody td:nth-of-type(1):before { content: "Date"; }
+      tbody td:nth-of-type(2):before { content: "Time"; }
+      tbody td:nth-of-type(3):before { content: "Description"; }
+      tbody td:nth-of-type(4):before { content: "Temp ≥63°C"; }
+      tbody td:nth-of-type(5):before { content: "Time +2 hrs"; }
+      tbody td:nth-of-type(6):before { content: "Temp ≥63°C"; }
+      tbody td:nth-of-type(7):before { content: "Action Taken"; }
+
+      input {
+        font-size: 14px;
+      }
+
+      .icon-btn {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>WEEKLY FOOD HOLDING CABINET RECORD</h1>
+    <div class="info">
+      <p><label>Branch:</label> PARSONS GREEN</p>
+      <p><label>Branch Code:</label> 003</p>
+      <p><label>Week Ending:</label> <input type="date" id="weekEnding" /></p>
+    </div>
+
+    <div class="notice">
+      Keep hot food above 63°C. This is outside the danger zone (5°C to 63°C). Lukewarm food is dangerous for bacterial growth. Use food above 63°C first. Do not mix batches. If food reheated, it should be above >70°C. <br><strong>If food &lt;63°C THROW AWAY</strong>
+    </div>
+
+    <table id="recordTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Description</th>
+          <th>PROB TEMP ≥63°C</th>
+          <th>TIME AFTER 2 HRS</th>
+          <th>PROB TEMP ≥63°C</th>
+          <th>Action Taken</th>
+        </tr>
+      </thead>
+      <tbody id="recordBody">
+        <!-- Rows will go here -->
+      </tbody>
+    </table>
+
+    <div class="button-group">
+      <button class="save-button" onclick="goBack()">⬅️ Back</button>
+      <button class="add-button" onclick="addRow()">➕ Add Row</button>
+      <button class="save-button" onclick="saveData()">💾 Save</button>
+      
+      <button class="save-button" onclick="goNext()">Next ⮕</button>
+    </div>
+  </div>
+
+  <script>
+    function validateTemp(input) {
+      const value = parseFloat(input.value);
+      input.classList.toggle("warning-input", !isNaN(value) && value < 63);
+    }
+
+    function addRow(data = {}) {
+      const tbody = document.getElementById("recordBody");
+      const row = document.createElement("tr");
+
+      const fields = [
+        { type: "date", value: data.date || "" },
+        { type: "time", value: data.time || "" },
+        { type: "text", value: data.desc || "" },
+        { type: "text", value: data.temp1 || "", class: "temp-check" },
+        { type: "time", value: data.time2 || "" },
+        { type: "text", value: data.temp2 || "", class: "temp-check" }
+      ];
+
+      fields.forEach(field => {
+        const td = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = field.type;
+        input.value = field.value;
+        if (field.class) {
+          input.classList.add(field.class);
+          input.addEventListener("input", () => validateTemp(input));
+        }
+        td.appendChild(input);
+        row.appendChild(td);
+      });
+
+      const actionTd = document.createElement("td");
+      const actionInput = document.createElement("input");
+      actionInput.type = "text";
+      actionInput.value = data.action || "";
+      actionTd.appendChild(actionInput);
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "icon-btn";
+      editBtn.innerHTML = "✏️";
+      editBtn.onclick = () => {
+        const inputs = row.querySelectorAll("input");
+        inputs.forEach(input => input.disabled = !input.disabled);
+      };
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "icon-btn";
+      deleteBtn.innerHTML = "🗑️";
+      deleteBtn.onclick = () => row.remove();
+
+      actionTd.appendChild(editBtn);
+      actionTd.appendChild(deleteBtn);
+      row.appendChild(actionTd);
+
+      tbody.appendChild(row);
+    }
+
+    function saveData() {
+      const rows = document.querySelectorAll("#recordBody tr");
+      const data = Array.from(rows).map(row => {
+        const inputs = row.querySelectorAll("input");
+        return {
+          date: inputs[0].value,
+          time: inputs[1].value,
+          desc: inputs[2].value,
+          temp1: inputs[3].value,
+          time2: inputs[4].value,
+          temp2: inputs[5].value,
+          action: inputs[6].value
+        };
+      });
+
+      const weekEnding = document.getElementById("weekEnding").value;
+      const saveObj = { weekEnding, data };
+      localStorage.setItem("holdingCabinetData", JSON.stringify(saveObj));
+      alert("✅ Saved locally.");
+    }
+
+    function restoreData() {
+      const saved = localStorage.getItem("holdingCabinetData");
+      if (!saved) return;
+      const { weekEnding, data } = JSON.parse(saved);
+      document.getElementById("weekEnding").value = weekEnding || "";
+      data.forEach(row => addRow(row));
+    }
+
+    function goBack() {
+      window.location.href = 'page2.html';
+    }
+
+    function goNext() {
+      window.location.href = 'page4.html';
+    }
+
+    // Initial setup
+    window.onload = () => {
+      restoreData();
+      if (document.querySelectorAll("#recordBody tr").length === 0) addRow();
+    };
+    (function enforceReadonlyMode() {
+  const isReadonly = new URLSearchParams(window.location.search).get('readonly') === 'true';
+  if (!isReadonly) return;
+
+  // Disable inputs
+  document.querySelectorAll("input, textarea, select, canvas").forEach(el => {
+    el.disabled = true;
+    el.readOnly = true;
+    el.style.pointerEvents = "none"; // Prevent drawing on canvas
+  });
+
+  // Hide all buttons and button containers
+  document.querySelectorAll("button, .button-group, .section-buttons, .actions, .button-row").forEach(el => {
+    el.style.display = "none";
+  });
+})();
+
+  </script>
+</body>
+</html>

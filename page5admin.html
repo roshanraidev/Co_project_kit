@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin - Kitchen Configuration</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    h2 {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 6px;
+      margin-top: 30px;
+    }
+    .form-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    button {
+      padding: 10px 18px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    li {
+      background: #f8f8f8;
+      margin-bottom: 8px;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    li button {
+      background-color: #e74c3c;
+    }
+    li button:hover {
+      background-color: #c0392b;
+    }
+    .save-btn {
+      background-color: #007BFF;
+      margin-top: 20px;
+    }
+    .save-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Admin Panel – Kitchen Config</h1>
+
+    <!-- Suppliers Section -->
+    <h2>Suppliers</h2>
+    <div class="form-group">
+      <input type="text" id="newSupplier" placeholder="Enter Supplier Name" />
+      <button onclick="addSupplier()">Add</button>
+    </div>
+    <ul id="supplierList"></ul>
+    <button class="save-btn" onclick="saveSuppliers()">Save Suppliers</button>
+
+    <!-- Fridges / Freezers Section -->
+    <h2>Fridges & Freezers</h2>
+    <div class="form-group">
+      <input type="text" id="newUnit" placeholder="Enter Unit Name (e.g. Fridge 7)" />
+      <button onclick="addUnit()">Add</button>
+    </div>
+    <ul id="unitList"></ul>
+    <button class="save-btn" onclick="saveUnits()">Save Units</button>
+  </div>
+
+  <script>
+    // --- SUPPLIERS ---
+    let suppliers = JSON.parse(localStorage.getItem("suppliers") || "[]");
+    renderSupplierList();
+
+    function addSupplier() {
+      const input = document.getElementById("newSupplier");
+      const name = input.value.trim();
+      if (name && !suppliers.includes(name)) {
+        suppliers.push(name);
+        input.value = "";
+        renderSupplierList();
+      }
+    }
+
+    function removeSupplier(index) {
+      suppliers.splice(index, 1);
+      renderSupplierList();
+    }
+
+    function renderSupplierList() {
+      const list = document.getElementById("supplierList");
+      list.innerHTML = "";
+      suppliers.forEach((name, idx) => {
+        list.innerHTML += `<li>${name} <button onclick="removeSupplier(${idx})">Remove</button></li>`;
+      });
+    }
+
+    function saveSuppliers() {
+      localStorage.setItem("suppliers", JSON.stringify(suppliers));
+      alert("✅ Suppliers saved successfully!");
+    }
+
+    // --- FRIDGE / FREEZER UNITS ---
+    let units = JSON.parse(localStorage.getItem("units") || "[]");
+    renderUnitList();
+
+    function addUnit() {
+      const input = document.getElementById("newUnit");
+      const name = input.value.trim();
+      if (name && !units.includes(name)) {
+        units.push(name);
+        input.value = "";
+        renderUnitList();
+      }
+    }
+
+    function removeUnit(index) {
+      units.splice(index, 1);
+      renderUnitList();
+    }
+
+    function renderUnitList() {
+      const list = document.getElementById("unitList");
+      list.innerHTML = "";
+      units.forEach((name, idx) => {
+        list.innerHTML += `<li>${name} <button onclick="removeUnit(${idx})">Remove</button></li>`;
+      });
+    }
+
+    function saveUnits() {
+      localStorage.setItem("units", JSON.stringify(units));
+      alert("✅ Units saved successfully!");
+    }
+  </script>
+</body>
+</html>
